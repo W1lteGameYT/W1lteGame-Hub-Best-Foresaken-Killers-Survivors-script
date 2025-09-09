@@ -1,0 +1,168 @@
+local RunService = game:GetService("RunService")
+local PlayersService = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = PlayersService.LocalPlayer
+
+local function findGroup(name)
+    local g = workspace:FindFirstChild(name)
+    if not g then
+        local wp = workspace:FindFirstChild("Players")
+        if wp then
+            g = wp:FindFirstChild(name)
+        end
+    end
+    return g
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ESP_UI"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 420, 0, 180)
+mainFrame.Position = UDim2.new(0, 50, 0, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+mainFrame.BackgroundTransparency = 1
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+title.Text = "W1lteGame Hub"
+title.Font = Enum.Font.GothamBold
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 20
+title.Parent = mainFrame
+
+local line1 = Instance.new("Frame")
+line1.Size = UDim2.new(1, 0, 0, 1)
+line1.Position = UDim2.new(0, 0, 0, 40)
+line1.BackgroundColor3 = Color3.new(1, 1, 1)
+line1.BorderSizePixel = 0
+line1.Parent = mainFrame
+
+local killerButton = Instance.new("TextButton")
+killerButton.Size = UDim2.new(0, 120, 0, 40)
+killerButton.Position = UDim2.new(0, 10, 0, 70)
+killerButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+killerButton.TextColor3 = Color3.new(1, 1, 1)
+killerButton.Font = Enum.Font.GothamBold
+killerButton.TextSize = 16
+killerButton.Text = "Killers Only"
+killerButton.Parent = mainFrame
+killerButton.BackgroundTransparency = 1
+killerButton.TextTransparency = 1
+
+local survivorButton = Instance.new("TextButton")
+survivorButton.Size = UDim2.new(0, 120, 0, 40)
+survivorButton.Position = UDim2.new(0, 150, 0, 70)
+survivorButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+survivorButton.TextColor3 = Color3.new(1, 1, 1)
+survivorButton.Font = Enum.Font.GothamBold
+survivorButton.TextSize = 16
+survivorButton.Text = "Survivors Only"
+survivorButton.Parent = mainFrame
+survivorButton.BackgroundTransparency = 1
+survivorButton.TextTransparency = 1
+
+local bothButton = Instance.new("TextButton")
+bothButton.Size = UDim2.new(0, 120, 0, 40)
+bothButton.Position = UDim2.new(0, 290, 0, 70)
+bothButton.BackgroundColor3 = Color3.fromRGB(70, 70, 200)
+bothButton.TextColor3 = Color3.new(1, 1, 1)
+bothButton.Font = Enum.Font.GothamBold
+bothButton.TextSize = 16
+bothButton.Text = "Both"
+bothButton.Parent = mainFrame
+bothButton.BackgroundTransparency = 1
+bothButton.TextTransparency = 1
+
+local hideAllButton = Instance.new("TextButton")
+hideAllButton.Size = UDim2.new(0, 120, 0, 30)
+hideAllButton.Position = UDim2.new(0, 150, 0, 120)
+hideAllButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+hideAllButton.TextColor3 = Color3.new(1, 1, 1)
+hideAllButton.Font = Enum.Font.GothamBold
+hideAllButton.TextSize = 14
+hideAllButton.Text = "Hide All"
+hideAllButton.Parent = mainFrame
+hideAllButton.BackgroundTransparency = 1
+hideAllButton.TextTransparency = 1
+
+local buttons = {killerButton, survivorButton, bothButton, hideAllButton}
+local mode = "None"
+
+local function ensureHighlight(model, outlineColor, fillColor, depthMode)
+    local highlight = model:FindFirstChildOfClass("Highlight")
+    if not highlight then
+        highlight = Instance.new("Highlight")
+        highlight.Adornee = model
+        highlight.Parent = model
+        highlight.OutlineColor = outlineColor
+        highlight.FillColor = fillColor
+        highlight.FillTransparency = 1
+        highlight.OutlineTransparency = 1
+        highlight.DepthMode = depthMode or Enum.HighlightDepthMode.Occluded
+    end
+    return highlight
+end
+
+local function setGroupESP(groupName, active, outlineColor, fillColor, throughWalls)
+    local group = findGroup(groupName)
+    if not group then return end
+    for _, obj in pairs(group:GetChildren()) do
+        if obj:IsA("Model") and obj:FindFirstChild("Humanoid") then
+            local h = ensureHighlight(obj, outlineColor, fillColor, throughWalls and Enum.HighlightDepthMode.AlwaysOnTop)
+            local targetFill = active and 0.75 or 1
+            local targetOutline = active and 0.25 or 1
+            TweenService:Create(h, TweenInfo.new(0.3), {FillTransparency = targetFill, OutlineTransparency = targetOutline}):Play()
+        end
+    end
+end
+
+local function updateButtons()
+    if mode == "None" then
+        killerButton.Visible = true
+        survivorButton.Visible = true
+        bothButton.Visible = true
+    else
+        killerButton.Visible = mode ~= "Killers"
+        survivorButton.Visible = mode ~= "Survivors"
+        bothButton.Visible = mode ~= "Both"
+    end
+end
+
+killerButton.MouseButton1Click:Connect(function()
+    if mode == "Killers" then mode = "None" else mode = "Killers" end
+    updateButtons()
+end)
+
+survivorButton.MouseButton1Click:Connect(function()
+    if mode == "Survivors" then mode = "None" else mode = "Survivors" end
+    updateButtons()
+end)
+
+bothButton.MouseButton1Click:Connect(function()
+    if mode == "Both" then mode = "None" else mode = "Both" end
+    updateButtons()
+end)
+
+hideAllButton.MouseButton1Click:Connect(function()
+    mode = "None"
+    updateButtons()
+end)
+
+RunService.RenderStepped:Connect(function()
+    setGroupESP("Killers", mode == "Killers" or mode == "Both", Color3.new(1,0,0), Color3.new(1,0.5,0.5), true)
+    setGroupESP("Survivors", mode == "Survivors" or mode == "Both", Color3.new(0,1,0), Color3.new(0.5,1,0.5))
+end)
+
+TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0,50,0,50), BackgroundTransparency = 0}):Play()
+for _, btn in pairs(buttons) do
+    TweenService:Create(btn, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0, TextTransparency = 0}):Play()
+end
