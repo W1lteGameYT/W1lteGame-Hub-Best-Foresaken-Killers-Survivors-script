@@ -108,6 +108,8 @@ local function ensureHighlight(model, outlineColor, fillColor, depthMode)
         highlight.FillTransparency = 1
         highlight.OutlineTransparency = 1
         highlight.DepthMode = depthMode or Enum.HighlightDepthMode.Occluded
+    else
+        highlight.DepthMode = depthMode or Enum.HighlightDepthMode.Occluded
     end
     return highlight
 end
@@ -158,8 +160,11 @@ hideAllButton.MouseButton1Click:Connect(function()
 end)
 
 RunService.RenderStepped:Connect(function()
+    setGroupESP("Survivors", mode == "Survivors" or mode == "Both", Color3.new(0,1,0), Color3.new(0.5,1,0.5), true)
+
+    -- Killers ESP (also supports Slashers)
     setGroupESP("Killers", mode == "Killers" or mode == "Both", Color3.new(1,0,0), Color3.new(1,0.5,0.5), true)
-    setGroupESP("Survivors", mode == "Survivors" or mode == "Both", Color3.new(0,1,0), Color3.new(0.5,1,0.5))
+    setGroupESP("Slashers", mode == "Killers" or mode == "Both", Color3.new(1,0,0), Color3.new(1,0.5,0.5), true)
 end)
 
 TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0,50,0,50), BackgroundTransparency = 0}):Play()
